@@ -2,10 +2,11 @@
 from __future__ import division
 from __future__ import print_function
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 import argparse
 import sys
 
+sys.path.append("/home/marta/jku/SBNet/ssnet_cent_git")
 import numpy as np
 import tensorflow as tf
 
@@ -19,7 +20,6 @@ from glob import glob
 
 FLAGS = None
 
-
 # In[0]:
 def readData(FLAGS):
     
@@ -27,9 +27,10 @@ def readData(FLAGS):
     
     if FLAGS.split_type == 'voice_only':
         print('Reading Voice Train')
-        train_file_voice = '../data/voice/voiceTrain.csv'
+        train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
         train_data = pd.read_csv(train_file_voice, header=None)
         train_label = train_data[512]
+        # todo marta: this should be translated to a one-hot, since we have multiple labels
         le = preprocessing.LabelEncoder()
         le.fit(train_label)
         train_label = le.transform(train_label)
@@ -40,7 +41,7 @@ def readData(FLAGS):
         
     elif FLAGS.split_type == 'face_only':
         print('Reading Face Train')
-        train_file_face = '../data/face/facenetFaceTrain.csv'
+        train_file_face = '/home/marta/jku/SBNet/data/face/facenetFaceTrain.csv'
         train_data = pd.read_csv(train_file_face, header=None)
         train_label = train_data[512]
         le = preprocessing.LabelEncoder()
@@ -54,8 +55,8 @@ def readData(FLAGS):
     train_data = []
     train_label = []
     
-    train_file_face = '../data/face/facenetfaceTrain.csv'
-    train_file_voice = '../data/voice/voiceTrain.csv'
+    train_file_face = '/home/marta/jku/SBNet/data/face/facenetfaceTrain.csv'
+    train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
     
     print('Reading Train Faces')
     img_train = pd.read_csv(train_file_face, header=None)
@@ -71,10 +72,12 @@ def readData(FLAGS):
     voice_train = voice_train[:, :-1]
     
     combined = list(zip(img_train, voice_train, train_tmp))
+    # todo marta: why do we need to shuffle here?
     random.shuffle(combined)
     img_train, voice_train, train_tmp = zip(*combined)
     
     if FLAGS.split_type == 'random':
+        # todo marta: aren't we doubling the dataset, like this?
         train_data = np.vstack((img_train, voice_train))
         train_label = np.vstack((train_tmp, train_tmp))
         combined = list(zip(train_data, train_label))

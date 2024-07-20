@@ -12,6 +12,8 @@ import torch.optim as optim
 import torch.utils.data
 from torch.autograd import Variable
 import torch.backends.cudnn as cudnn
+import sys
+sys.path.append("/home/marta/jku/SBNet/ssnet_fop")
 
 import pandas as pd
 from scipy import random
@@ -26,25 +28,26 @@ from tqdm import tqdm
 # In[0]
 
 def read_data(FLAGS):
-    
+
     print('Split Type: %s'%(FLAGS.split_type))
-    
+
     if FLAGS.split_type == 'voice_only':
         print('Reading Voice Train')
-        train_file_voice = '../data/voice/voiceTrain.csv'
+        train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
         train_data = pd.read_csv(train_file_voice, header=None)
         train_label = train_data[512]
+        # todo marta: this should be translated to a one-hot, since we have multiple labels
         le = preprocessing.LabelEncoder()
         le.fit(train_label)
         train_label = le.transform(train_label)
         train_data = np.asarray(train_data)
         train_data = train_data[:, :-1]
-        
+
         return train_data, train_label
-        
+
     elif FLAGS.split_type == 'face_only':
         print('Reading Face Train')
-        train_file_face = '../data/face/facenetfaceTrain.csv'
+        train_file_face = '/home/marta/jku/SBNet/data/face/facenetfaceTrain.csv'
         train_data = pd.read_csv(train_file_face, header=None)
         train_label = train_data[512]
         le = preprocessing.LabelEncoder()
@@ -52,33 +55,35 @@ def read_data(FLAGS):
         train_label = le.transform(train_label)
         train_data = np.asarray(train_data)
         train_data = train_data[:, :-1]
-        
+
         return train_data, train_label
-    
+
     train_data = []
     train_label = []
-    
-    train_file_face = '../data/face/facenetfaceTrain.csv'
-    train_file_voice = '../data/voice/voiceTrain.csv'
-    
+
+    train_file_face = '/home/marta/jku/SBNet/data/face/facenetfaceTrain.csv'
+    train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
+
     print('Reading Train Faces')
     img_train = pd.read_csv(train_file_face, header=None)
     train_tmp = img_train[512]
     img_train = np.asarray(img_train)
     img_train = img_train[:, :-1]
-    
+
     train_tmp = np.asarray(train_tmp)
     train_tmp = train_tmp.reshape((train_tmp.shape[0], 1))
     print('Reading Train Voices')
     voice_train = pd.read_csv(train_file_voice, header=None)
     voice_train = np.asarray(voice_train)
     voice_train = voice_train[:, :-1]
-    
+
     combined = list(zip(img_train, voice_train, train_tmp))
+    # todo marta: why do we need to shuffle here?
     random.shuffle(combined)
     img_train, voice_train, train_tmp = zip(*combined)
-    
+
     if FLAGS.split_type == 'random':
+        # todo marta: aren't we doubling the dataset, like this?
         train_data = np.vstack((img_train, voice_train))
         train_label = np.vstack((train_tmp, train_tmp))
         combined = list(zip(train_data, train_label))
@@ -86,42 +91,42 @@ def read_data(FLAGS):
         train_data, train_label = zip(*combined)
         train_data = np.asarray(train_data).astype(np.float)
         train_label = np.asarray(train_label)
-    
+
     elif FLAGS.split_type == 'vfvf':
         for i in range(len(voice_train)):
             train_data.append(voice_train[i])
             train_data.append(img_train[i])
             train_label.append(train_tmp[i])
             train_label.append(train_tmp[i])
-            
+
     elif FLAGS.split_type == 'fvfv':
         for i in range(len(voice_train)):
             train_data.append(img_train[i])
             train_data.append(voice_train[i])
             train_label.append(train_tmp[i])
-            train_label.append(train_tmp[i])        
-    
+            train_label.append(train_tmp[i])
+
     elif FLAGS.split_type == 'hefhev':
         train_data = np.vstack((img_train, voice_train))
         train_label = np.vstack((train_tmp, train_tmp))
-        
+
     elif FLAGS.split_type == 'hevhef':
         train_data = np.vstack((voice_train, img_train))
         train_label = np.vstack((train_tmp, train_tmp))
-    
+
     else:
         print('Invalid Split Type')
-    
+
     le = preprocessing.LabelEncoder()
     le.fit(train_label)
     train_label = le.transform(train_label)
-    
+
     print("Train file length", len(img_train))
     print('Shuffling\n')
-    
+
     train_data = np.asarray(train_data).astype(np.float)
     train_label = np.asarray(train_label)
-    
+
     return train_data, train_label
 
 
@@ -319,7 +324,7 @@ if __name__ == '__main__':
     parser.add_argument('--lr', type=float, default=1e-2, metavar='LR',
                         help='learning rate (default: 1e-4)') 
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training.')
-    parser.add_argument('--max_num_epoch', type=int, default=500, help='Max number of epochs to train, number')
+    parser.add_argument('--max_num_epoch', type=int, default=5, help='Max number of epochs to train, number')
     parser.add_argument('--alpha_list', type=list, default=[1], help='Alpha Values List')
     parser.add_argument('--dim_embed', type=int, default=128,
                         help='Embedding Size')
