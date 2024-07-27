@@ -47,6 +47,9 @@ class FOP(nn.Module):
         return feats, logits
     
     def train_forward(self, feats):
+        """
+        wrapper for the forward method
+        """
         
         comb = self(feats)
         return comb
