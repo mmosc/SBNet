@@ -27,7 +27,7 @@ def readData(FLAGS):
     
     if FLAGS.split_type == 'voice_only':
         print('Reading Voice Train')
-        train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
+        train_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voiceTrain.csv'
         train_data = pd.read_csv(train_file_voice, header=None)
         train_label = train_data[512]
         # todo marta: this should be translated to a one-hot, since we have multiple labels
@@ -41,7 +41,7 @@ def readData(FLAGS):
         
     elif FLAGS.split_type == 'face_only':
         print('Reading Face Train')
-        train_file_face = '/home/marta/jku/SBNet/data/face/facenetFaceTrain.csv'
+        train_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenetFaceTrain.csv'
         train_data = pd.read_csv(train_file_face, header=None)
         train_label = train_data[512]
         le = preprocessing.LabelEncoder()
@@ -55,8 +55,8 @@ def readData(FLAGS):
     train_data = []
     train_label = []
     
-    train_file_face = '/home/marta/jku/SBNet/data/face/facenetfaceTrain.csv'
-    train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
+    train_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenetfaceTrain.csv'
+    train_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voiceTrain.csv'
     
     print('Reading Train Faces')
     img_train = pd.read_csv(train_file_face, header=None)

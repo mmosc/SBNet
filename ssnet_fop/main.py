@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import argparse
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "3"
 
 import numpy as np
 import torch
@@ -33,7 +33,7 @@ def read_data(FLAGS):
 
     if FLAGS.split_type == 'voice_only':
         print('Reading Voice Train')
-        train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
+        train_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voiceTrain.csv'
         train_data = pd.read_csv(train_file_voice, header=None)
         train_label = train_data[512]
         # todo marta: this should be translated to a one-hot, since we have multiple labels
@@ -47,7 +47,7 @@ def read_data(FLAGS):
 
     elif FLAGS.split_type == 'face_only':
         print('Reading Face Train')
-        train_file_face = '/home/marta/jku/SBNet/data/face/facenetfaceTrain.csv'
+        train_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenetfaceTrain.csv'
         train_data = pd.read_csv(train_file_face, header=None)
         train_label = train_data[512]
         le = preprocessing.LabelEncoder()
@@ -61,8 +61,8 @@ def read_data(FLAGS):
     train_data = []
     train_label = []
 
-    train_file_face = '/home/marta/jku/SBNet/data/face/facenetfaceTrain.csv'
-    train_file_voice = '/home/marta/jku/SBNet/data/voice/voiceTrain.csv'
+    train_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenetfaceTrain.csv'
+    train_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voiceTrain.csv'
 
     print('Reading Train Faces')
     img_train = pd.read_csv(train_file_face, header=None)
@@ -321,12 +321,12 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='Random Seed')
     parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training')
     parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints.')
-    parser.add_argument('--lr', type=float, default=1e-2, metavar='LR',
-                        help='learning rate (default: 1e-4)') 
+    parser.add_argument('--lr', type=float, default=1e-4, metavar='LR',
+                        help='learning rate (default: 1e-2)')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training.')
-    parser.add_argument('--max_num_epoch', type=int, default=5, help='Max number of epochs to train, number')
+    parser.add_argument('--max_num_epoch', type=int, default=50, help='Max number of epochs to train, number')
     parser.add_argument('--alpha_list', type=list, default=[1], help='Alpha Values List')
-    parser.add_argument('--dim_embed', type=int, default=128,
+    parser.add_argument('--dim_embed', type=int, default=256,
                         help='Embedding Size')
     parser.add_argument('--split_type', type=str, default='hefhev', help='split_type')
 

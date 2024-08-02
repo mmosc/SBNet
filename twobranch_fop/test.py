@@ -25,8 +25,8 @@ face = 'facenet'
 
 def read_data(FLAGS):
     
-    test_file_face = '/home/marta/jku/SBNet/data/face/facenet_face_veriflist_test_%s_unseenunheard.csv'%(FLAGS.test)
-    test_file_voice = '/home/marta/jku/SBNet/data/voice/voice_veriflist_test_%s_unseenunheard.csv'%(FLAGS.test)
+    test_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenet_face_veriflist_test_%s_unseenunheard.csv'%(FLAGS.test)
+    test_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voice_veriflist_test_%s_unseenunheard.csv'%(FLAGS.test)
 
     print('Reading Test Faces')
     face_test = pd.read_csv(test_file_face, header=None)

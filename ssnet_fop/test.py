@@ -20,10 +20,10 @@ def read_data(FLAGS):
     
     if FLAGS.split_type == 'voice_only':
         print('Reading Voice Test Anchors')
-        test_file_anc = '/home/marta/jku/SBNet/data/voice/twoBranchVoiceOnlyAnchor.csv'
+        test_file_anc = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/twoBranchVoiceOnlyAnchor.csv'
         test_anc = pd.read_csv(test_file_anc, header=None)
         print('Reading Voice Test PosNeg')
-        test_file_neg = '/home/marta/jku/SBNet/data/voice/twoBranchVoiceOnlyPosNeg.csv'
+        test_file_neg = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/twoBranchVoiceOnlyPosNeg.csv'
         test_neg = pd.read_csv(test_file_neg, header=None)
         
         test_anc = np.asarray(test_anc)
@@ -38,10 +38,10 @@ def read_data(FLAGS):
         
     elif FLAGS.split_type == 'face_only':
         print('Reading Face Test Anchors')
-        test_file_anc = '/home/marta/jku/SBNet/data/face/facenet_AncFaceTest_random_unseenunheard.csv'
+        test_file_anc = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenet_AncFaceTest_random_unseenunheard.csv'
         test_anc = pd.read_csv(test_file_anc, header=None)
         print('Reading Face Test PosNeg')
-        test_file_neg = '/home/marta/jku/SBNet/data/face/facenet_face_veriflist_test_random_unseenunheard.csv'
+        test_file_neg = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenet_face_veriflist_test_random_unseenunheard.csv'
         test_neg = pd.read_csv(test_file_neg, header=None)
         
         test_anc = np.asarray(test_anc)
@@ -54,8 +54,8 @@ def read_data(FLAGS):
             
         test_list = np.asarray(test_list)        
     else:
-        test_file_face = '/home/marta/jku/SBNet/data/face/facenet_face_veriflist_test_%s_%s.csv'%(FLAGS.test, FLAGS.sh)
-        test_file_voice = '/home/marta/jku/SBNet/data/voice/voice_veriflist_test_%s_%s.csv'%(FLAGS.test, FLAGS.sh)
+        test_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenet_face_veriflist_test_%s_%s.csv'%(FLAGS.test, FLAGS.sh)
+        test_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voice_veriflist_test_%s_%s.csv'%(FLAGS.test, FLAGS.sh)
         print('Reading Test Faces')
         face_test = pd.read_csv(test_file_face, header=None)
         print('Reading Test Voices')

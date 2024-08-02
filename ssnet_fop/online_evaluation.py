@@ -14,8 +14,8 @@ from scipy import interpolate
 
 def read_data():
     
-    test_file_face = '/home/marta/jku/SBNet/data/face/facenet_face_veriflist_test_random_unseenunheard.csv'
-    test_file_voice = '/home/marta/jku/SBNet/data/voice/voice_veriflist_test_random_unseenunheard.csv'
+    test_file_face = '/share/hel/datasets/voxceleb/sbnet_feats/data/face/facenet_face_veriflist_test_random_unseenunheard.csv'
+    test_file_voice = '/share/hel/datasets/voxceleb/sbnet_feats/data/voice/voice_veriflist_test_random_unseenunheard.csv'
 
     print('Reading Test Faces')
     face_test = pd.read_csv(test_file_face, header=None)
