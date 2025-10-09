@@ -18,41 +18,17 @@ from sklearn.model_selection import KFold
 from scipy import interpolate
 
 def read_data(FLAGS):
-    face = 'facenet'
-    if FLAGS.split_type == 'voice_only':
-        print('Reading Voice Test Anchors')
-        test_file_anc = 'D:/research/ssnet/voxTrainTestData/voice/twoBranchVoiceOnlyAnchor.csv'
-        test_anc = pd.read_csv(test_file_anc, header=None)
-        print('Reading Voice Test PosNeg')
-        test_file_neg = 'D:/research/ssnet/voxTrainTestData/voice/twoBranchVoiceOnlyPosNeg.csv'
-        test_neg = pd.read_csv(test_file_neg, header=None)
-        
-        test_anc = np.asarray(test_anc)
-        test_neg = np.asarray(test_neg)
-    
-    elif FLAGS.split_type == 'face_only':
-        print('Reading Face Test Anchors')
-        test_file_anc = 'D:/research/ssnet/voxTrainTestData/faces/%s_AncFaceTest_random_unseenunheard.csv'%(face)
-        test_anc = pd.read_csv(test_file_anc, header=None)
-        print('Reading Face Test PosNeg')
-        test_file_neg = 'D:/research/ssnet/voxTrainTestData/faces/facenet_face_veriflist_test_random_unseenunheard.csv'
-        test_neg = pd.read_csv(test_file_neg, header=None)
-        
-        test_anc = np.asarray(test_anc)
-        test_neg = np.asarray(test_neg)
-    
-    test_list = []
-    for dat in range(len(test_anc)):
-        test_list.append(test_anc[dat])
-        test_list.append(test_neg[dat])
-        
-    test_list = np.asarray(test_list)
-    test_list = torch.from_numpy(test_list).float()
-    
-    return test_list
+
+    if FLAGS.split_type == 'mfcc_only':
+        print('Reading MFCC Test Anchors')
+        test_file = f'../data/binary_test.csv'
+        test_labels_df = pd.read_csv(test_file)
+        test_labels = test_labels_df['is_match'].to_numpy()
+
+    test_tensor = torch.from_numpy(test_labels).float()
+    return test_tensor
 
 
-# In[1]
 
 def same_func(f):
     issame_lst = []
