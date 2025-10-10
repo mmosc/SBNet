@@ -20,8 +20,10 @@ import torch.nn as nn
 from tqdm import tqdm
 from retrieval_model import FOP
 
+import online_evaluation
 
-def read_data(FLAGS):
+
+def read_data(split, FLAGS):
     """
     Reads, processes, and returns the features and the labels.
     Labels:
@@ -37,12 +39,11 @@ def read_data(FLAGS):
     """
     
     print('Split Type: %s'%(FLAGS.split_type))
-
+    labels_file = f'../data/binary_{split}.csv'
     # for now let's focus on one feature only
     if FLAGS.split_type == 'mfcc_only':
         print('Reading MFCC Train')
-        train_file_ids = '../data/binary_train.csv'
-        train_data = pd.read_csv(train_file_ids)
+        train_data = pd.read_csv(labels_file)
         # columns i and j are the ids
         i_ids = train_data['i'].tolist()
         j_ids = train_data['j'].tolist()
@@ -96,7 +97,7 @@ def init_weights(m):
         torch.nn.init.xavier_uniform_(m.weight)
         m.bias.data.fill_(0.01)
 
-def main(i_train_data, j_train_data, train_label):
+def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test_label):
     """
     The actual training.
 
@@ -111,7 +112,8 @@ def main(i_train_data, j_train_data, train_label):
     model.apply(init_weights)
 
     # set loss to binary cross entropy from logits (softmax "included" in the loss)
-    bce_loss = nn.BCEWithLogitsLoss().cuda()
+    # bce_loss = nn.BCEWithLogitsLoss().cuda()
+    bce_loss = nn.BCELoss().cuda()
 
     if FLAGS.cuda:
         model.cuda()
@@ -165,19 +167,17 @@ def main(i_train_data, j_train_data, train_label):
             loss_per_epoch /= num_of_batches
 
             loss_plot.append(loss_per_epoch)
-            # ToDo substitute with accuracy? but then we need a threshold
-            # ToDo we need to somehow pass the test features!
-            if FLAGS.split_type == 'voice_only' or FLAGS.split_type == 'face_only':
-                eer, auc = onlineTestSingleModality.test(FLAGS, model, test_feat)
-            else:
-                eer, auc = online_evaluation.test(FLAGS, model, test_feat)
+            eer, auc = online_evaluation.test(FLAGS, model, i_test_data, j_test_data, test_label)
+
+
+            
             eer_list.append(eer)
             auc_list.append(auc)
             save_checkpoint({
                 'epoch': epoch,
                 'state_dict': model.state_dict()}, save_dir, 'checkpoint_%04d_%0.3f.pth.tar'%(epoch, eer*100))
 
-            print('==> Epoch: %d/%d Loss: %0.2f, Min_EER: %0.2f'%(epoch, FLAGS.max_num_epoch, loss_per_epoch, min(eer_list)))
+            print('==> Epoch: %d/%d Loss: %0.4f, Min_EER: %0.2f'%(epoch, FLAGS.max_num_epoch, loss_per_epoch, min(eer_list)))
 
             if eer <= min(eer_list):
                 min_eer = eer
@@ -186,10 +186,8 @@ def main(i_train_data, j_train_data, train_label):
                 'epoch': epoch,
                 'state_dict': model.state_dict()}, save_best, 'checkpoint.pth.tar')
 
-            f.write('%04d\t%0.4f\t%0.2f\t%0.2f\t%0.2f\t%0.2f\n'%(epoch, loss_per_epoch, eer, auc, s_fac_per_epoch, d_fac_per_epoch))
+            f.write('%04d\t%0.4f\t%0.2f\t%0.2f\n'%(epoch, loss_per_epoch, eer, auc))
             loss_per_epoch = 0
-            s_fac_per_epoch = 0
-            d_fac_per_epoch = 0
             epoch += 1
 
                 
@@ -252,7 +250,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='Random Seed')
     parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training')
     parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints.')
-    parser.add_argument('--lr', type=float, default=1e-2, metavar='LR', help='learning rate (default: 1e-4)')
+    parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate (default: 1e-4)')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training.')
     parser.add_argument('--max_num_epoch', type=int, default=500, help='Max number of epochs to train, number')
     parser.add_argument('--intermediate_emb', type=int, default=256, help='Intermediate Layer')
@@ -264,12 +262,7 @@ if __name__ == '__main__':
     torch.manual_seed(FLAGS.seed)
     if FLAGS.cuda and torch.cuda.is_available():
         torch.cuda.manual_seed(FLAGS.seed)
-    if FLAGS.split_type == 'mfcc_only':
-        import onlineTestSingleModality
-        test_feats = onlineTestSingleModality.read_data(FLAGS)
-    else:
-        import online_evaluation
-        test_feat = online_evaluation.read_data()
-    i_train_data, j_train_data, train_label = read_data(FLAGS)
+    i_train_data, j_train_data, train_label = read_data('train', FLAGS)
+    i_test_data, j_test_data, test_label = read_data('test', FLAGS)
     
-    main(i_train_data, j_train_data, train_label)
+    main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test_label)

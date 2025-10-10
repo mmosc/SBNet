@@ -26,6 +26,8 @@ class EmbedBranch(nn.Module):
         self.fc_shared = make_fc_1d(intermediate_dim, embedding_dim).cuda()
 
     def forward(self, x_i, x_j):
+        # ToDo padding?
+        #  make it such that for a same feature, the network is the same
         x_i = self.fc_i(x_i)
         x_i = self.fc_shared(x_i)
         x_j = self.fc_j(x_j)
@@ -57,11 +59,12 @@ class FOP(nn.Module):
 
     def forward(self, i_feats, j_feats):
         i_feats, j_feats = self.embed_branch(i_feats, j_feats)
+        logits = self.logits(i_feats, j_feats)
 
-        return i_feats, j_feats
+        return logits
     
     def train_forward(self, i_feats, j_feats):
-        i_feats, j_feats = self(i_feats, j_feats)
-        logits = self.logits(i_feats, j_feats)
+        logits = self(i_feats, j_feats)
+        # logits = self.logits(i_feats, j_feats)
 
         return logits
