@@ -34,8 +34,11 @@ def read_data(split, FLAGS):
      - for the list of first tracks (i), filter the features
      - for the list of second tracks (j), filter the features
      - convert both to numpy arrays
-    :param FLAGS:
-    :return:
+    This function is used to load both the training and validation/test sets
+    :param FLAGS: additional parameters
+    :param split: whether to read the train, val, or test split
+    :return: features_i, features_j, train_label. np.arrays containing the input features of the first and second tracks (i, j)
+    and of the labels
     """
     
     print('Split Type: %s'%(FLAGS.split_type))
@@ -93,6 +96,10 @@ def get_batch(batch_index, batch_size, labels, i_f_lst, j_f_lst):
     return batch_feat_i, batch_feat_j, batch_labels
 
 def init_weights(m):
+    """
+    Initialize the weights of the linear layers of the model
+    :param m: pytorch model
+    """
     if type(m) == nn.Linear:
         torch.nn.init.xavier_uniform_(m.weight)
         m.bias.data.fill_(0.01)
@@ -100,11 +107,22 @@ def init_weights(m):
 def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test_label):
     """
     The actual training.
+    It also stores:
+     - the best model over epochs
+     - the values of the loss and of the validation metrics over epochs
 
+    Training set:
     :param i_train_data: np.array storing the features of the first trakcs
     :param j_train_data: np.array storing the features of the second trakcs
     :param train_label: labels for each pair
-    :return:
+
+    Test set (used for early stopping, so actually it shoyld be called validation set)
+    :param i_test_data: np.array storing the features of the first trakcs
+    :param j_test_data: np.array storing the features of the second trakcs
+    :param test_label: labels for each pair
+    :return loss_plot: values of the loss over epochs
+    :return min_eer: minimum error over epochs
+    :return max_auc: maximum auc over epochs
     """
 
     # initialize the model
@@ -193,13 +211,18 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
                 
         return loss_plot, min_eer, max_auc
 
-
-# i_train_batch,
-# j_train_batch,
-# batch_labels,
-# model, optimizer, bce_loss)
-
 def train(i_train_batch, j_train_batch, labels, model, optimizer, bce_loss):
+    """
+    Training function for a single batch.
+
+    :param i_train_batch: features for first tracks (i) in the batch
+    :param j_train_batch: features for second tracks (j) in the batch
+    :param labels: labels of the batch
+    :param model: pytorch model to optimize
+    :param optimizer: optimizer
+    :param bce_loss: binary cross entropy loss
+    :return: loss of the batch
+    """
     
     average_loss = RunningAverage()
 
