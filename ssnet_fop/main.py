@@ -23,6 +23,16 @@ from retrieval_model import SingleBranchWithDownproject, SingleBranchWithPadding
 import online_evaluation
 
 
+def read_feature(file_path, ids):
+    features = pd.read_csv(file_path)
+    features = features.set_index('ID')
+
+    # features of the list of first tracks
+    features_i = features.loc[ids]
+    features_i = np.asarray(features_i)
+    return features_i
+
+
 def read_data(split, FLAGS):
     """
     Reads, processes, and returns the features and the labels.
@@ -56,24 +66,14 @@ def read_data(split, FLAGS):
     le.fit(train_label)
     train_label = le.transform(train_label)
 
-    # ToDo convert this to a function
     # features
     train_file_i = f'/opt/datasets/Music4All/music4all/multimodal_full/id_{fi_name}.csv'
-    features = pd.read_csv(train_file_i)
-    features = features.set_index('ID')
-
-    # features of the list of first tracks
-    features_i = features.loc[i_ids]
-    features_i = np.asarray(features_i)
+    features_i = read_feature(train_file_i, i_ids)
 
 
     # features
     train_file_j = f'/opt/datasets/Music4All/music4all/multimodal_full/id_{fj_name}.csv'
-    features = pd.read_csv(train_file_j)
-    features = features.set_index('ID')
-    # features of the list of first tracks
-    features_j = features.loc[j_ids]
-    features_j = np.asarray(features_j)
+    features_j = read_feature(train_file_j, j_ids)
 
     return features_i, features_j, train_label
 
