@@ -40,38 +40,42 @@ def read_data(split, FLAGS):
     :return: features_i, features_j, train_label. np.arrays containing the input features of the first and second tracks (i, j)
     and of the labels
     """
-    
-    print('Split Type: %s'%(FLAGS.split_type))
+    fi_name, fj_name = FLAGS.feature_i, FLAGS.feature_j
+    print(f'Modalities: {fi_name}\t {fj_name}')
     labels_file = f'../data/binary_{split}.csv'
-    # for now let's focus on one feature only
-    if FLAGS.split_type == 'mfcc_only':
-        print('Reading MFCC Train')
-        train_data = pd.read_csv(labels_file)
-        # columns i and j are the ids
-        i_ids = train_data['i'].tolist()
-        j_ids = train_data['j'].tolist()
 
-        # column is_match is the label
-        train_label = train_data['is_match']
-        le = preprocessing.LabelEncoder()
-        le.fit(train_label)
-        train_label = le.transform(train_label)
+    print(f'Reading {fi_name}, {fj_name} Train')
+    train_data = pd.read_csv(labels_file)
+    # columns i and j are the ids
+    i_ids = train_data['i'].tolist()
+    j_ids = train_data['j'].tolist()
+
+    # column is_match is the label
+    train_label = train_data['is_match']
+    le = preprocessing.LabelEncoder()
+    le.fit(train_label)
+    train_label = le.transform(train_label)
+
+    # ToDo convert this to a function
+    # features
+    train_file_i = f'/opt/datasets/Music4All/music4all/multimodal_full/id_{fi_name}.csv'
+    features = pd.read_csv(train_file_i)
+    features = features.set_index('ID')
+
+    # features of the list of first tracks
+    features_i = features.loc[i_ids]
+    features_i = np.asarray(features_i)
 
 
-        # features
-        train_file_mfccs = '/opt/datasets/Music4All/music4all/multimodal_full/id_mfcc_bow.csv'
-        features = pd.read_csv(train_file_mfccs)
-        features = features.set_index('ID')
+    # features
+    train_file_j = f'/opt/datasets/Music4All/music4all/multimodal_full/id_{fj_name}.csv'
+    features = pd.read_csv(train_file_j)
+    features = features.set_index('ID')
+    # features of the list of first tracks
+    features_j = features.loc[j_ids]
+    features_j = np.asarray(features_j)
 
-        # features of the list of first tracks
-        features_i = features.loc[i_ids]
-        features_i = np.asarray(features_i)
-
-        # features of the list of first tracks
-        features_j = features.loc[j_ids]
-        features_j = np.asarray(features_j)
-
-        return features_i, features_j, train_label
+    return features_i, features_j, train_label
 
 
 def get_batch(batch_index, batch_size, labels, i_f_lst, j_f_lst):
@@ -152,7 +156,8 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     auc_list = []
     loss_per_epoch = 0
     txt_dir = 'output'
-    save_dir = 'fc2_%s_%s_'%(FLAGS.split_type, FLAGS.save_dir)
+    fi_name, fj_name = FLAGS.feature_i, FLAGS.feature_j
+    save_dir = f'fc2_{fi_name}_{fj_name}_{FLAGS.save_dir}'
     txt = '%s/ce_opl_%03d.txt'%(txt_dir, FLAGS.max_num_epoch)
 
     if not os.path.exists(save_dir):
@@ -170,7 +175,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
         os.makedirs(save_best)
     with open(txt, 'a+') as f:
         while (epoch < FLAGS.max_num_epoch):
-            print('%s\tEpoch %03d'%(FLAGS.split_type, epoch))
+            print(f'{fi_name}_{fj_name}\tEpoch {epoch}')
             for idx in tqdm(range(num_of_batches)):
                 i_train_batch, j_train_batch, batch_labels = get_batch(idx, FLAGS.batch_size, train_label, i_train_data, j_train_data)
                 # voice_feats, _ = get_batch(idx, FLAGS.batch_size, train_label, voice_train)
@@ -275,10 +280,11 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints.')
     parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate (default: 1e-4)')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training.')
-    parser.add_argument('--max_num_epoch', type=int, default=500, help='Max number of epochs to train, number')
+    parser.add_argument('--max_num_epoch', type=int, default=5, help='Max number of epochs to train, number')
     parser.add_argument('--intermediate_emb', type=int, default=256, help='Intermediate Layer')
     parser.add_argument('--dim_embed', type=int, default=128, help='Embedding Size')
-    parser.add_argument('--split_type', type=str, default='mfcc_only', help='split_type')
+    parser.add_argument('--feature_i', type=str, default='mfcc_bow', help='feature i (first modality)')
+    parser.add_argument('--feature_j', type=str, default='mfcc_bow', help='feature j (second modality)')
 
     global FLAGS
     FLAGS, unparsed = parser.parse_known_args()
