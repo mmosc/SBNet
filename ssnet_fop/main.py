@@ -18,7 +18,7 @@ from sklearn import preprocessing
 import torch.nn as nn
 
 from tqdm import tqdm
-from retrieval_model import FOP
+from retrieval_model import SingleBranchWithDownproject, SingleBranchWithPadding
 
 import online_evaluation
 
@@ -130,7 +130,13 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     """
 
     # initialize the model
-    model = FOP(FLAGS, i_train_data.shape[1], j_train_data.shape[1])
+    if FLAGS.merging_technique == 'downprojection':
+        model = SingleBranchWithDownproject(FLAGS, i_train_data.shape[1], j_train_data.shape[1])
+    elif FLAGS.merging_technique == 'padding' or i_train_data.shape[1] == j_train_data.shape[1]:
+        model = SingleBranchWithPadding(FLAGS, i_train_data.shape[1], j_train_data.shape[1])
+    else:
+        print(f'Merging technique {FLAGS.merging_technique} not recognized!')
+
     model.apply(init_weights)
 
     # set loss to binary cross entropy from logits (softmax "included" in the loss)
@@ -145,8 +151,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr, weight_decay=0.01)
 
     n_parameters = sum([p.data.nelement() for p in model.parameters()])
-    print('  + Number of params: {}'.format(n_parameters))
-    
+    print(f'Model type {model.name}  + Number of params: {n_parameters}')
     
     # for alpha in FLAGS.alpha_list:
     eer_list = []
@@ -285,6 +290,7 @@ if __name__ == '__main__':
     parser.add_argument('--dim_embed', type=int, default=128, help='Embedding Size')
     parser.add_argument('--feature_i', type=str, default='mfcc_bow', help='feature i (first modality)')
     parser.add_argument('--feature_j', type=str, default='mfcc_bow', help='feature j (second modality)')
+    parser.add_argument('--merging_technique', type=str, default='downproject', help='whether to downproject or pad if there is a dimension mismatch')
 
     global FLAGS
     FLAGS, unparsed = parser.parse_known_args()
