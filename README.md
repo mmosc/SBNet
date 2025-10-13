@@ -109,9 +109,6 @@ The data for training, evaluating, and testing the NN is shared with you [here](
 The pre-trained model should be stored in the `ssnet_fop/best_fc2<modality_1>_<modality_2>_model` folder. Such a model is 
 also stored any time you re-run the code to train a new model. Pre-trained model instances are available [here]().
 The name shares the same convention of the model folder, and allows you to identify what features were used during training.
-
-### Model 
-
 ## Setup
 ### Environment
 
