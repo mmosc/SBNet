@@ -1,77 +1,129 @@
 
-# SBNet for binary classification
+# Neural Network for Cross-Modal Music Similarity Classification
+This is the code for the multimedia mining search and retrieval (MMSR) WS25 course at the Johannes Kepler University Linz. 
 
-## Original proposal (face-voice association)
-a) Two independent modality-specific embedding networks to extract features (left) and a conventional two-branch
-network (right) having two independent modality-specific branches to learn discriminative joint representations of the
-multimodal task. (b) Proposed network with a single modality-invariant branch.
-<p align="center"> 
-  <img src="imgs/two_branch.jpg" width="40%"/>
-  <img src="imgs/network.jpg" width="40%"/>
- </p>
+The code aims at developing and training a neural network (NN) architecture that, given two tracks, classifies them as 
+"sharing at least one genre" (1, positive output) or "not sharing any music genre" (0, negative output). 
+The task is therefore formulated as binary classification.
+
+You will use this code to train the algorithm on a set $S_\text{class}$ of 1000 tracks. The pre-trained architecture will then be used as feature
+extractor to compute representations of the set $S_\text{retr}$ of 4000 tracks to be used in the actual MMRS task, i.e., the retrieval of similar tracks, 
+given a query track. Notice that $S_\text{class}$ and $S_\text{retr}$ do not share any track, i.e., their intersection is empty. 
+
+## Cross-Modal Music Similarity Classification
+### Dataset
+The dataset creation is shown in the notebook `/data/create_dataset.ipynb`. As you can see, we started from an initial set of tracks $S = S_\text{class} \cup S_\text{retr}$. 
+We randomly sampled 1000 tracks to form $S_\text{class}$. We created all possible combinations of two tracks out of 
+$S_\text{class}$, resulting in $499,500$ pairs. Each pair is labelled either with a 1, if the two tracks share at least one genre
+or with a 0, if the two tracks do not share any genre.
+
+We then shuffled the resulting data, and selected 80% of pairs as training set, 10% as validation set, and 10% as test set.
+The data for training, evaluating, and testing the NN is shared with you [here](). 
+
+### Models
+The code for the actual NN models is in `ssnet_fop/retrieval_model.py`. All models rely on the `SingleBranchGeneral` class, 
+which is a subclass of PyTorch `nn.Module`. All models have a `forward` method that, given the feature vectors of 
+track $i$ (feature 1) and track $j$ (feature 2)
+ - Processes each of them with an embedding module (see below for description)
+ - Computes the cosine similarity of the resulting embeddings
+ - Returns the cosine similarity as logits to compute the probability that the two tracks share at least one genre.
+
+The feature embedding modules are multi-layer perceptrons (MLP) with fully connected linear layers, followed by batch normalization, 
+ReLU activation function and dropout regularization. The all embedding modules are children classes of `EmbedBranchGeneral`. 
+In all embedding modules, the same final layer `self.fc_shared` is shared between the two input modalities. 
+We currently support three options:
+- `EmbedBranchDownproject`: Before being passed as input to `self.fc_shared`, feature 1 and feature 2 are passed to a modality-specific layer, `self.fc_i` and `self.fc_j`. 
+ This means that the first layer is not shared between the two modalities.
+- `EmbedBranchPadding`: Before being passed as input to `self.fc_shared`, feature 1 and feature 2 are passed to a same layer, shared between modalities. 
+Since the modalities might be of different dimensionality, the algorithm pads with zeros the modality of lower dimension, to ensure
+That both modalities are compatible with the input dimension of `self.fc_shared`. In this case, one between `self.fc_i` and `self.fc_j` is the 
+identity operator, while the other is the padding operator.
 
 
-## Installation
-
-We have used the following setup for our experiments:
-```
-python==3.6.5
-```
-
-[CUDA](https://developer.nvidia.com/cuda-toolkit-archive) and [cuDNN](https://developer.nvidia.com/rdp/cudnn-archive) Setup:
-
-
-* CUDA Toolkit 10.2
-* cudnn v8.2.1.32 for CUDA10.2
-
-
-To install PyTorch and TensorFlow with GPU support:
+### Training 
+Models are trained with binary cross entropy loss. The code for training the NN is in `ssnet_fop/main.py`. You can run it as follows:
 ```bash
-  pip install tensorflow-gpu==1.13.1
-  pip install torch==1.8.1+cu102 torchvision==0.9.1+cu102 torchaudio==0.8.1 -f https://download.pytorch.org/whl/torch_stable.html
+cd ssnet_fop
+python main.py
 ```
 
-### Extracted Features
-The face and voice features used in our work can be accessed [here](https://drive.google.com/drive/folders/1O6VaVlV6k_WM-sXqFeAkXkX9iUddVNf7?usp=sharing). Once downloaded, place the files like this:
+All arguments of this script are optional, but be aware of the default values.  
+```bash
+usage: main.py [-h] [--seed S] [--cuda] [--save_dir SAVE_DIR] [--lr LR] [--batch_size BATCH_SIZE] [--max_num_epoch MAX_NUM_EPOCH] [--intermediate_emb INTERMEDIATE_EMB] [--dim_embed DIM_EMBED] [--feature_i FEATURE_I] [--feature_j FEATURE_J]
+               [--merging_technique MERGING_TECHNIQUE]
+
+options:
+  -h, --help            show this help message and exit
+  --seed S              Random Seed. Default 1
+  --cuda                CUDA Training. Default True
+  --save_dir SAVE_DIR   Directory for saving checkpoints. Default model
+  --lr LR               learning rate. Default: 1e-5
+  --batch_size BATCH_SIZE
+                        Batch size for training. Default 128
+  --max_num_epoch MAX_NUM_EPOCH
+                        Max number of epochs to train, number. Default 500
+  --intermediate_emb INTERMEDIATE_EMB
+                        Intermediate Layer. Default 256
+  --dim_embed DIM_EMBED
+                        Embedding Size. Default 128
+  --feature_i FEATURE_I
+                        feature i (first modality). Default mfcc_bow
+  --feature_j FEATURE_J
+                        feature j (second modality). Default mfcc_bow
+  --merging_technique MERGING_TECHNIQUE
+                        whether to downproject or pad if there is a dimension mismatch. Default downproject
+
 ```
-|-- data
-  |-- voice
-    |-- .csv files
-  |-- face
-    |--  .csv files
-|-- imgs
-|-- ssnet_cent_git
-|-- ssnet_fop
-|-- twobranch_cent_git
-|-- twobranch_fop
+### Evaluation
+
+
+
+## Project Structure and Files Description
+```bash
+.
+├── README.md
+├── data
+│ ├── binary_test.csv
+│ ├── binary_train.csv
+│ ├── binary_val.csv
+│ ├── create_dataset.ipynb
+│ └── inspect.ipynb
+├── ssnet_fop
+│ ├── best_fc2_mfcc_bow_mfcc_bow_model
+│ │ └── checkpoint.pth.tar
+│ ├── fc2_mfcc_bow_mfcc_bow_model
+│ ├── main.py
+│ ├── online_evaluation.py
+│ ├── output
+│ │ └── ce_opl_500.txt
+│ ├── retrieval_model.py
+│ └── test.py
+└── twobranch_fop
+    ├── best_facenet_gated_model_alpha_1.00
+    │ └── checkpoint.pth.tar
+    ├── retrieval_model.py
+    └── test.py
+
+
 ```
+### Dataset Folder
+For training, evaluating, and testing the model with our scripts, the dataset should be stored in the `data` folder. 
+The data for training, evaluating, and testing the NN is shared with you [here](). 
 
-## Training and Testing
+
+### Trained Model Folder
+The pre-trained model should be stored in the `ssnet_fop/best_fc2<modality_1>_<modality_2>_model` folder. Such a model is 
+also stored any time you re-run the code to train a new model. Pre-trained model instances are available [here]().
+The name shares the same convention of the model folder, and allows you to identify what features were used during training.
+
+### Model 
+
+## Setup
+### Environment
+
+We recommend using a conda environment to run the code. Once you installed conda, you can run the following commands to reproduce our setup
+```bash
+conda env -n sbnet python=3.12
+conda activate sbnet
+pip install pandas==2.3.3 scikit-learn==1.7.2 scipy==1.16.2 tqdm==4.67.1 torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 
 ```
-# Training
-python main.py --save_dir ./model --batch_size 128 --max_num_epoch 100 --dim_embed 128 --split_type <face_only, voice_only, hefhev, hevhef, random, fvfv, vfvf>
-
-# Testing
-python test.py --split_type vfvf --sh unseenunheard --test random
-```
-
-
-## Single-Branch Paper
-```BibTeX
-@inproceedings{saeed2023sbnet,
-  title={Single-branch Network for Multimodal Training},
-  author={Saeed, Muhammad Saad and Nawaz, Shah and Yousaf and Khan, Muhammad Haris and Zaheer, Muhammad Zaigham and Nandakumar, Karthik and Yousaf, Muhammad Haroon and Mahmood, Arf},
-  booktitle={ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
-  year={2023},
-  organization={IEEE}
-}
-
-@inproceedings{saeed2022fusion,
-  title={Fusion and Orthogonal Projection for Improved Face-Voice Association},
-  author={Saeed, Muhammad Saad and Khan, Muhammad Haris and Nawaz, Shah and Yousaf, Muhammad Haroon and Del Bue, Alessio},
-  booktitle={ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
-  pages={7057--7061},
-  year={2022},
-  organization={IEEE}
-}
-
