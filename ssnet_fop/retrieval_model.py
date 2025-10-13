@@ -19,9 +19,6 @@ def multi_layer(list_of_dims):
     sequential = nn.Sequential(*list_of_modules)
     return sequential
 
-'''
-Embedding Extraction Module
-'''        
 
 class EmbedBranchGeneral(nn.Module):
     def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim):
@@ -33,8 +30,6 @@ class EmbedBranchGeneral(nn.Module):
 
         x_j = self.fc_j(x_j)
         x_j = self.fc_shared(x_j)
-        # x = self.fc2(x)
-        # x = nn.functional.normalize(x)
         return x_i, x_j
 
 class EmbedBranchDownproject(EmbedBranchGeneral):
@@ -62,9 +57,6 @@ class EmbedBranchPadding(EmbedBranchGeneral):
         self.fc_shared = multi_layer([max_dim, intermediate_dim, embedding_dim]).cuda()
 
 
-'''
-Main Module
-'''
 class SingleBranchGeneral(nn.Module):
     def __init__(self, args, i_feat_dim, j_feat_dim):
         super(SingleBranchGeneral, self).__init__()
@@ -81,8 +73,6 @@ class SingleBranchGeneral(nn.Module):
 
     def train_forward(self, i_feats, j_feats):
         logits = self(i_feats, j_feats)
-        # logits = self.logits(i_feats, j_feats)
-
         return logits
 
 class SingleBranchWithDownproject(SingleBranchGeneral):
