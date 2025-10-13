@@ -98,12 +98,6 @@ options:
 │ │ └── ce_opl_500.txt
 │ ├── retrieval_model.py
 │ └── test.py
-└── twobranch_fop
-    ├── best_facenet_gated_model_alpha_1.00
-    │ └── checkpoint.pth.tar
-    ├── retrieval_model.py
-    └── test.py
-
 
 ```
 ### Dataset Folder
