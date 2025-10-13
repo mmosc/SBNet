@@ -280,17 +280,17 @@ def save_checkpoint(state, directory, filename):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=1, metavar='S', help='Random Seed')
-    parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training')
-    parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints.')
-    parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate (default: 1e-4)')
-    parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training.')
-    parser.add_argument('--max_num_epoch', type=int, default=5, help='Max number of epochs to train, number')
-    parser.add_argument('--intermediate_emb', type=int, default=256, help='Intermediate Layer')
-    parser.add_argument('--dim_embed', type=int, default=128, help='Embedding Size')
-    parser.add_argument('--feature_i', type=str, default='mfcc_bow', help='feature i (first modality)')
-    parser.add_argument('--feature_j', type=str, default='mfcc_bow', help='feature j (second modality)')
-    parser.add_argument('--merging_technique', type=str, default='downproject', help='whether to downproject or pad if there is a dimension mismatch')
+    parser.add_argument('--seed', type=int, default=1, metavar='S', help='Random Seed. Default 1')
+    parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training. Default True')
+    parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints. Default model')
+    parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate. Default: 1e-5')
+    parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training. Default 128')
+    parser.add_argument('--max_num_epoch', type=int, default=500, help='Max number of epochs to train, number. Default 500')
+    parser.add_argument('--intermediate_emb', type=int, default=256, help='Intermediate Layer. Default 256')
+    parser.add_argument('--dim_embed', type=int, default=128, help='Embedding Size. Default 128')
+    parser.add_argument('--feature_i', type=str, default='mfcc_bow', help='feature i (first modality). Default mfcc_bow')
+    parser.add_argument('--feature_j', type=str, default='mfcc_bow', help='feature j (second modality). Default mfcc_bow')
+    parser.add_argument('--merging_technique', type=str, default='downproject', help='whether to downproject or pad if there is a dimension mismatch. Default downproject')
 
     global FLAGS
     FLAGS, unparsed = parser.parse_known_args()
