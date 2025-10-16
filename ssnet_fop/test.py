@@ -80,7 +80,7 @@ def read_data(FLAGS):
 
 # In[1]
 
-from retrieval_model import FOP
+from binary_classification_model import FOP
 
 def load_checkpoint(model, resume_filename):
     start_epoch = 1
