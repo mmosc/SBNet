@@ -18,7 +18,7 @@ from sklearn import preprocessing
 import torch.nn as nn
 
 from tqdm import tqdm
-from retrieval_model import SingleBranchWithDownproject, SingleBranchWithPadding
+from binary_classification_model import SingleBranchWithDownproject, SingleBranchWithPadding
 
 import online_evaluation
 

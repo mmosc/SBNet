@@ -18,10 +18,13 @@ $S_\text{class}$, resulting in $499,500$ pairs. Each pair is labelled either wit
 or with a 0, if the two tracks do not share any genre.
 
 We then shuffled the resulting data, and selected 80% of pairs as training set, 10% as validation set, and 10% as test set.
-The data for training, evaluating, and testing the NN is shared with you [here](). 
+The data for training, evaluating, and testing the NN is shared with you in the folder `binary_classification` available [here](https://cloud.cp.jku.at/index.php/s/zaoS2nLtDkNfHBx). 
+
+Notice that the files to be used for the actual retrieval task (i.e., the set $S_\text{retr}$) are shared with you in the folder `retrieval` available [here](https://cloud.cp.jku.at/index.php/s/zaoS2nLtDkNfHBx). 
+
 
 ### Models
-The code for the actual NN models is in `ssnet_fop/retrieval_model.py`. All models rely on the `SingleBranchGeneral` class, 
+The code for the actual NN models is in `ssnet_fop/binary_classification_model.py`. All models rely on the `SingleBranchGeneral` class, 
 which is a subclass of PyTorch `nn.Module`. All models have a `forward` method that, given the feature vectors of 
 track $i$ (feature 1) and track $j$ (feature 2)
  - Processes each of them with an embedding module (see below for description)
@@ -102,12 +105,12 @@ options:
 ```
 ### Dataset Folder
 For training, evaluating, and testing the model with our scripts, the dataset should be stored in the `data` folder. 
-The data for training, evaluating, and testing the NN is shared with you [here](). 
+The data for training, evaluating, and testing the NN is shared with you in the folder `binary_classification` available [here](https://cloud.cp.jku.at/index.php/s/zaoS2nLtDkNfHBx). 
 
 
 ### Trained Model Folder
 The pre-trained model should be stored in the `ssnet_fop/best_fc2<modality_1>_<modality_2>_model` folder. Such a model is 
-also stored any time you re-run the code to train a new model. Pre-trained model instances are available [here]().
+also stored any time you re-run the code to train a new model. Pre-trained model instances are available (not yet ready) [here]().
 The name shares the same convention of the model folder, and allows you to identify what features were used during training.
 ## Setup
 ### Environment
