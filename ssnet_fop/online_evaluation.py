@@ -6,49 +6,9 @@ import numpy as np
 import torch
 from torch.autograd import Variable
 
-import pandas as pd
 from sklearn import metrics
-# from scipy.optimize import brentq
 from sklearn.model_selection import KFold
-from scipy import interpolate
 
-def read_data():
-    
-    test_file_face = '../data/face/facenet_face_veriflist_test_random_unseenunheard.csv'
-    test_file_voice = '../data/voice/voice_veriflist_test_random_unseenunheard.csv'
-
-    print('Reading Test Faces')
-    face_test = pd.read_csv(test_file_face, header=None)
-    print('Reading Test Voices')
-    voice_test = pd.read_csv(test_file_voice, header=None)
-    
-    face_test = np.asarray(face_test)[:,:512]
-    voice_test = np.asarray(voice_test)[:,:512]
-    
-    test_list = []
-    for dat in range(len(voice_test)):
-        test_list.append(voice_test[dat])
-        test_list.append(face_test[dat])
-    
-    test_list = np.asarray(test_list)
-    test_feat = torch.from_numpy(test_list).float()
-    
-    # face_test = torch.from_numpy(face_test).float()
-    # voice_test = torch.from_numpy(voice_test).float()
-    return test_feat
-
-
-# In[1]
-
-def same_func(f):
-    issame_lst = []
-    for idx in range(len(f)):
-        if idx % 2 == 0:
-            issame = True
-        else:
-            issame = False
-        issame_lst.append(issame)
-    return issame_lst
 
 def calculate_accuracy(threshold, sigmoids, labels):
     predict_issame = np.less(threshold, sigmoids)
@@ -100,16 +60,16 @@ def evaluate(sigmoids, labels, nrof_folds=10):
     print('\nEvaluating')
     return tpr, fpr, accuracy
 
-def test(args, model, i_test_data, j_test_data, test_label):
+def test(args, model, i_test_data, j_test_data, test_label, device):
 
     model.eval()
-    model.cuda()
+    model.to(device)
 
     i_test_data = torch.from_numpy(i_test_data).float()
     j_test_data = torch.from_numpy(j_test_data).float()
-    if args.cuda:
-        i_test_data = i_test_data.cuda()
-        j_test_data = j_test_data.cuda()
+
+    i_test_data = i_test_data.to(device)
+    j_test_data = j_test_data.to(device)
     i_test_data = Variable(i_test_data)
     j_test_data = Variable(j_test_data)
 
