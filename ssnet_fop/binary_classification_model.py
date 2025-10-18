@@ -21,8 +21,9 @@ def multi_layer(list_of_dims):
 
 
 class EmbedBranchGeneral(nn.Module):
-    def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim):
+    def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device):
         super(EmbedBranchGeneral, self).__init__()
+        self.device = device
 
     def forward(self, x_i, x_j):
         x_i = self.fc_i(x_i)
@@ -33,18 +34,18 @@ class EmbedBranchGeneral(nn.Module):
         return x_i, x_j
 
 class EmbedBranchDownproject(EmbedBranchGeneral):
-    def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim):
-        super().__init__(i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim)
-        self.fc_i = make_fc_1d(i_feat_dim, intermediate_dim).cuda()
-        self.fc_j = make_fc_1d(j_feat_dim, intermediate_dim).cuda()
-        self.fc_shared = make_fc_1d(intermediate_dim, embedding_dim).cuda()
+    def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device):
+        super().__init__(i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device)
+        self.fc_i = make_fc_1d(i_feat_dim, intermediate_dim).to(self.device)
+        self.fc_j = make_fc_1d(j_feat_dim, intermediate_dim).to(self.device)
+        self.fc_shared = make_fc_1d(intermediate_dim, embedding_dim).to(self.device)
 
 class EmbedBranchPadding(EmbedBranchGeneral):
-    def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim):
-        super().__init__(i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim)
+    def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device):
+        super().__init__(i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device)
         max_dim = max(i_feat_dim, j_feat_dim)
-        self.fc_i = nn.Identity().cuda()
-        self.fc_j = nn.Identity().cuda()
+        self.fc_i = nn.Identity().to(self.device)
+        self.fc_j = nn.Identity().to(self.device)
 
         if i_feat_dim == max_dim:
             # if i is the largest tensor, j is the one to pad
@@ -54,16 +55,16 @@ class EmbedBranchPadding(EmbedBranchGeneral):
             # if j is the largest tensor, i is the one to pad
             self.fc_i = nn.ZeroPad1d(max_dim - i_feat_dim)
             pass
-        self.fc_shared = multi_layer([max_dim, intermediate_dim, embedding_dim]).cuda()
+        self.fc_shared = multi_layer([max_dim, intermediate_dim, embedding_dim]).to(self.device)
 
 
 class SingleBranchGeneral(nn.Module):
-    def __init__(self, args, i_feat_dim, j_feat_dim):
+    def __init__(self, args, i_feat_dim, j_feat_dim, device):
         super(SingleBranchGeneral, self).__init__()
+        self.device = device
         self.logits = nn.CosineSimilarity(dim=1, eps=1e-6)
 
-        if args.cuda:
-            self.cuda()
+        self.to(self.device)
 
     def forward(self, i_feats, j_feats):
         i_feats, j_feats = self.embed_branch(i_feats, j_feats)
@@ -76,17 +77,17 @@ class SingleBranchGeneral(nn.Module):
         return logits
 
 class SingleBranchWithDownproject(SingleBranchGeneral):
-    def __init__(self, args, i_feat_dim, j_feat_dim):
-        super().__init__(args, i_feat_dim, j_feat_dim)
+    def __init__(self, args, i_feat_dim, j_feat_dim, device):
+        super().__init__(args, i_feat_dim, j_feat_dim, device)
         self.name = 'Single Branch with Downprojection'
-        self.embed_branch = EmbedBranchDownproject(i_feat_dim, j_feat_dim, args.intermediate_emb, args.dim_embed)
+        self.embed_branch = EmbedBranchDownproject(i_feat_dim, j_feat_dim, args.intermediate_emb, args.dim_embed, device)
 
 
 class SingleBranchWithPadding(SingleBranchGeneral):
-    def __init__(self, args, i_feat_dim, j_feat_dim):
-        super().__init__(args, i_feat_dim, j_feat_dim)
+    def __init__(self, args, i_feat_dim, j_feat_dim, device):
+        super().__init__(args, i_feat_dim, j_feat_dim, device)
         self.name = 'Single Branch with Padding'
-        self.embed_branch = EmbedBranchPadding(i_feat_dim, j_feat_dim, args.intermediate_emb, args.dim_embed)
+        self.embed_branch = EmbedBranchPadding(i_feat_dim, j_feat_dim, args.intermediate_emb, args.dim_embed, device)
 
 
 

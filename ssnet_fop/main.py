@@ -24,8 +24,8 @@ import online_evaluation
 
 
 def read_feature(file_path, ids):
-    features = pd.read_csv(file_path)
-    features = features.set_index('ID')
+    features = pd.read_csv(file_path, sep='\t')
+    features = features.set_index('id')
 
     # features of the list of first tracks
     features_i = features.loc[ids]
@@ -33,7 +33,7 @@ def read_feature(file_path, ids):
     return features_i
 
 
-def read_data(split, FLAGS):
+def read_data(split):
     """
     Reads, processes, and returns the features and the labels.
     Labels:
@@ -52,10 +52,10 @@ def read_data(split, FLAGS):
     """
     fi_name, fj_name = FLAGS.feature_i, FLAGS.feature_j
     print(f'Modalities: {fi_name}\t {fj_name}')
-    labels_file = f'../data/binary_{split}.csv'
+    labels_file = f'../data/binary_classification/binary_{split}.tsv'
 
     print(f'Reading {fi_name}, {fj_name} Train')
-    train_data = pd.read_csv(labels_file)
+    train_data = pd.read_csv(labels_file, sep='\t')
     # columns i and j are the ids
     i_ids = train_data['i'].tolist()
     j_ids = train_data['j'].tolist()
@@ -67,12 +67,12 @@ def read_data(split, FLAGS):
     train_label = le.transform(train_label)
 
     # features
-    train_file_i = f'/opt/datasets/Music4All/music4all/multimodal_full/id_{fi_name}.csv'
+    train_file_i = f'../data/binary_classification/id_{fi_name}_mmsr.tsv'
     features_i = read_feature(train_file_i, i_ids)
 
 
     # features
-    train_file_j = f'/opt/datasets/Music4All/music4all/multimodal_full/id_{fj_name}.csv'
+    train_file_j = f'../data/binary_classification/id_{fj_name}_mmsr.tsv'
     features_j = read_feature(train_file_j, j_ids)
 
     return features_i, features_j, train_label
@@ -131,9 +131,9 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
 
     # initialize the model
     if FLAGS.merging_technique == 'downprojection':
-        model = SingleBranchWithDownproject(FLAGS, i_train_data.shape[1], j_train_data.shape[1])
+        model = SingleBranchWithDownproject(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
     elif FLAGS.merging_technique == 'padding' or i_train_data.shape[1] == j_train_data.shape[1]:
-        model = SingleBranchWithPadding(FLAGS, i_train_data.shape[1], j_train_data.shape[1])
+        model = SingleBranchWithPadding(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
     else:
         print(f'Merging technique {FLAGS.merging_technique} not recognized!')
 
@@ -143,9 +143,10 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     # bce_loss = nn.BCEWithLogitsLoss().cuda()
     bce_loss = nn.BCELoss().cuda()
 
-    if FLAGS.cuda:
-        model.cuda()
-        bce_loss.cuda()
+    model.to(DEVICE)
+    bce_loss.to(DEVICE)
+
+    if DEVICE == 'cuda':
         cudnn.benchmark = True
     
     optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr, weight_decay=0.01)
@@ -195,7 +196,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
             loss_per_epoch /= num_of_batches
 
             loss_plot.append(loss_per_epoch)
-            eer, auc = online_evaluation.test(FLAGS, model, i_test_data, j_test_data, test_label)
+            eer, auc = online_evaluation.test(FLAGS, model, i_test_data, j_test_data, test_label, DEVICE)
 
 
             
@@ -241,8 +242,7 @@ def train(i_train_batch, j_train_batch, labels, model, optimizer, bce_loss):
     j_train_batch = torch.from_numpy(j_train_batch).float()
     labels = torch.from_numpy(labels)
     
-    if FLAGS.cuda:
-        i_train_batch, j_train_batch, labels = i_train_batch.cuda(), i_train_batch.cuda(), labels.cuda()
+    i_train_batch, j_train_batch, labels = i_train_batch.to(DEVICE), i_train_batch.to(DEVICE), labels.to(DEVICE)
 
     i_train_batch, j_train_batch, labels = Variable(i_train_batch), Variable(j_train_batch), Variable(labels)
     confidence = model.train_forward(i_train_batch, j_train_batch)
@@ -281,7 +281,7 @@ def save_checkpoint(state, directory, filename):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='Random Seed. Default 1')
-    parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training. Default True')
+    #parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training. Default True')
     parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints. Default model')
     parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate. Default: 1e-5')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training. Default 128')
@@ -292,12 +292,18 @@ if __name__ == '__main__':
     parser.add_argument('--feature_j', type=str, default='mfcc_bow', help='feature j (second modality). Default mfcc_bow')
     parser.add_argument('--merging_technique', type=str, default='downproject', help='whether to downproject or pad if there is a dimension mismatch. Default downproject')
 
-    global FLAGS
+    global FLAGS, DEVICE
+
     FLAGS, unparsed = parser.parse_known_args()
+    DEVICE = 'cpu'
+
     torch.manual_seed(FLAGS.seed)
-    if FLAGS.cuda and torch.cuda.is_available():
+
+    if torch.cuda.is_available():
+        DEVICE = 'cuda'
         torch.cuda.manual_seed(FLAGS.seed)
-    i_train_data, j_train_data, train_label = read_data('train', FLAGS)
-    i_test_data, j_test_data, test_label = read_data('test', FLAGS)
+
+    i_train_data, j_train_data, train_label = read_data('train')
+    i_test_data, j_test_data, test_label = read_data('test')
     
     main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test_label)
