@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import argparse
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 import numpy as np
 import torch
@@ -164,7 +164,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     txt_dir = 'output'
     fi_name, fj_name = FLAGS.feature_i, FLAGS.feature_j
     save_dir = f'fc2_{fi_name}_{fj_name}_{FLAGS.save_dir}'
-    txt = '%s/ce_opl_%03d.txt'%(txt_dir, FLAGS.max_num_epoch)
+    txt = '%s/binary_classification_log_%03d_f1_%s_f2_%s.txt'%(txt_dir, FLAGS.max_num_epoch, FLAGS.feature_i, FLAGS.feature_j)
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
