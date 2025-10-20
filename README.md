@@ -56,9 +56,9 @@ usage: main.py [-h] [--seed S] [--cuda] [--save_dir SAVE_DIR] [--lr LR] [--batch
                [--merging_technique MERGING_TECHNIQUE]
 
 options:
-  -h, --help            show this help message and exit
+  --help, --help            show this help message and exit
   --seed S              Random Seed. Default 1
-  --cuda                CUDA Training. Default True
+  --device                Device to be used, either cuda (if a GPU is available) or cpu. Default cuda
   --save_dir SAVE_DIR   Directory for saving checkpoints. Default model
   --lr LR               learning rate. Default: 1e-5
   --batch_size BATCH_SIZE
@@ -86,9 +86,8 @@ options:
 .
 ├── README.md
 ├── data
-│ ├── binary_test.csv
-│ ├── binary_train.csv
-│ ├── binary_val.csv
+│ ├── todo folder
+│ ├── todo folder
 │ ├── create_dataset.ipynb
 │ └── inspect.ipynb
 ├── ssnet_fop
@@ -98,7 +97,6 @@ options:
 │ ├── main.py
 │ ├── online_evaluation.py
 │ ├── output
-│ │ └── ce_opl_500.txt
 │ ├── retrieval_model.py
 ```
 ### Dataset Folder
