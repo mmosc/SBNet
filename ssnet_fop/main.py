@@ -281,7 +281,7 @@ def save_checkpoint(state, directory, filename):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='Random Seed. Default 1')
-    #parser.add_argument('--cuda', action='store_true', default=True, help='CUDA Training. Default True')
+    parser.add_argument('--device', type=str, default='cuda', help='Device for training. Default is cuda, if cuda is not available, uses cpu', choices=['cuda', 'cpu'])
     parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints. Default model')
     parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate. Default: 1e-5')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training. Default 128')
@@ -295,13 +295,17 @@ if __name__ == '__main__':
     global FLAGS, DEVICE
 
     FLAGS, unparsed = parser.parse_known_args()
-    DEVICE = 'cpu'
+    # DEVICE = 'cpu'
 
     torch.manual_seed(FLAGS.seed)
 
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and FLAGS.device == 'cuda':
         DEVICE = 'cuda'
         torch.cuda.manual_seed(FLAGS.seed)
+        print('Running on CUDA')
+    else:
+        DEVICE = 'cpu'
+        print('Running on CPU')
 
     i_train_data, j_train_data, train_label = read_data('train')
     i_test_data, j_test_data, test_label = read_data('test')
