@@ -130,10 +130,11 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     """
 
     # initialize the model
-    if FLAGS.merging_technique == 'downprojection':
-        model = SingleBranchWithDownproject(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
-    elif FLAGS.merging_technique == 'padding' or i_train_data.shape[1] == j_train_data.shape[1]:
+    if FLAGS.merging_technique == 'padding' or i_train_data.shape[1] == j_train_data.shape[1]:
         model = SingleBranchWithPadding(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
+        print('padding')
+    elif FLAGS.merging_technique == 'downprojection':
+        model = SingleBranchWithDownproject(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
     else:
         print(f'Merging technique {FLAGS.merging_technique} not recognized!')
 
@@ -148,12 +149,12 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
 
     if DEVICE == 'cuda':
         cudnn.benchmark = True
-    
+
     optimizer = optim.Adam(model.parameters(), lr=FLAGS.lr, weight_decay=0.01)
 
     n_parameters = sum([p.data.nelement() for p in model.parameters()])
     print(f'Model type {model.name}  + Number of params: {n_parameters}')
-    
+
     # for alpha in FLAGS.alpha_list:
     eer_list = []
     epoch = 1
@@ -162,15 +163,20 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     auc_list = []
     loss_per_epoch = 0
     txt_dir = 'output'
+    id_run = '%03d_f1_%s_f2_%s_%s.txt'%(FLAGS.max_num_epoch, FLAGS.feature_i, FLAGS.feature_j, FLAGS.merging_technique)
+    run_out = '%s/%s'%(txt_dir, id_run)
     fi_name, fj_name = FLAGS.feature_i, FLAGS.feature_j
     save_dir = f'fc2_{fi_name}_{fj_name}_{FLAGS.merging_technique}_{FLAGS.save_dir}'
-    txt = '%s/binary_classification_log_%03d_f1_%s_f2_%s_%s.txt'%(txt_dir, FLAGS.max_num_epoch, FLAGS.feature_i, FLAGS.feature_j, FLAGS.merging_technique)
+    txt = '%s/%s/binary_classification_log_%s.txt'%(txt_dir, id_run, id_run)
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
     if not os.path.exists(txt_dir):
         os.makedirs(txt_dir)
+
+    if not os.path.exists(run_out):
+        os.makedirs(run_out)
 
     with open(txt, 'w+') as f:
         f.write('EPOCH\tLOSS\tEER\tAUC\tS_FAC\tD_FAC\n')
@@ -199,7 +205,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
             eer, auc = online_evaluation.test(FLAGS, model, i_test_data, j_test_data, test_label, DEVICE)
 
 
-            
+
             eer_list.append(eer)
             auc_list.append(auc)
             save_checkpoint({
@@ -219,7 +225,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
             loss_per_epoch = 0
             epoch += 1
 
-                
+
         return loss_plot, min_eer, max_auc
 
 def train(i_train_batch, j_train_batch, labels, model, optimizer, bce_loss):
@@ -234,14 +240,14 @@ def train(i_train_batch, j_train_batch, labels, model, optimizer, bce_loss):
     :param bce_loss: binary cross entropy loss
     :return: loss of the batch
     """
-    
+
     average_loss = RunningAverage()
 
     model.train()
     i_train_batch = torch.from_numpy(i_train_batch).float()
     j_train_batch = torch.from_numpy(j_train_batch).float()
     labels = torch.from_numpy(labels)
-    
+
     i_train_batch, j_train_batch, labels = i_train_batch.to(DEVICE), j_train_batch.to(DEVICE), labels.to(DEVICE)
 
     i_train_batch, j_train_batch, labels = Variable(i_train_batch), Variable(j_train_batch), Variable(labels)
