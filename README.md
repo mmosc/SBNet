@@ -100,8 +100,6 @@ options:
 │ ├── output
 │ │ └── ce_opl_500.txt
 │ ├── retrieval_model.py
-│ └── test.py
-
 ```
 ### Dataset Folder
 For training, evaluating, and testing the model with our scripts, the dataset should be stored in the `data` folder. 
