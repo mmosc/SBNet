@@ -163,8 +163,8 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     loss_per_epoch = 0
     txt_dir = 'output'
     fi_name, fj_name = FLAGS.feature_i, FLAGS.feature_j
-    save_dir = f'fc2_{fi_name}_{fj_name}_{FLAGS.save_dir}'
-    txt = '%s/binary_classification_log_%03d_f1_%s_f2_%s.txt'%(txt_dir, FLAGS.max_num_epoch, FLAGS.feature_i, FLAGS.feature_j)
+    save_dir = f'fc2_{fi_name}_{fj_name}_{FLAGS.merging_technique}_{FLAGS.save_dir}'
+    txt = '%s/binary_classification_log_%03d_f1_%s_f2_%s_%s.txt'%(txt_dir, FLAGS.max_num_epoch, FLAGS.feature_i, FLAGS.feature_j, FLAGS.merging_technique)
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
