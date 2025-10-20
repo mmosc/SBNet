@@ -242,7 +242,7 @@ def train(i_train_batch, j_train_batch, labels, model, optimizer, bce_loss):
     j_train_batch = torch.from_numpy(j_train_batch).float()
     labels = torch.from_numpy(labels)
     
-    i_train_batch, j_train_batch, labels = i_train_batch.to(DEVICE), i_train_batch.to(DEVICE), labels.to(DEVICE)
+    i_train_batch, j_train_batch, labels = i_train_batch.to(DEVICE), j_train_batch.to(DEVICE), labels.to(DEVICE)
 
     i_train_batch, j_train_batch, labels = Variable(i_train_batch), Variable(j_train_batch), Variable(labels)
     confidence = model.train_forward(i_train_batch, j_train_batch)
