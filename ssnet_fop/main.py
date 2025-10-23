@@ -4,7 +4,7 @@ from __future__ import print_function
 
 import argparse
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 import numpy as np
 import torch
@@ -290,7 +290,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default='cuda', help='Device for training. Default is cuda, if cuda is not available, uses cpu', choices=['cuda', 'cpu'])
     parser.add_argument('--save_dir', type=str, default='model', help='Directory for saving checkpoints. Default model')
     parser.add_argument('--lr', type=float, default=1e-5, metavar='LR', help='learning rate. Default: 1e-5')
-    parser.add_argument('--batch_size', type=int, default=128, help='Batch size for training. Default 128')
+    parser.add_argument('--batch_size', type=int, default=127, help='Batch size for training. Default 128')
     parser.add_argument('--max_num_epoch', type=int, default=500, help='Max number of epochs to train, number. Default 500')
     parser.add_argument('--intermediate_emb', type=int, default=256, help='Intermediate Layer. Default 256')
     parser.add_argument('--dim_embed', type=int, default=128, help='Embedding Size. Default 128')

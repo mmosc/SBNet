@@ -44,17 +44,16 @@ class EmbedBranchPadding(EmbedBranchGeneral):
     def __init__(self, i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device):
         super().__init__(i_feat_dim, j_feat_dim, intermediate_dim, embedding_dim, device)
         max_dim = max(i_feat_dim, j_feat_dim)
+
         self.fc_i = nn.Identity().to(self.device)
         self.fc_j = nn.Identity().to(self.device)
 
         if i_feat_dim == max_dim:
             # if i is the largest tensor, j is the one to pad
-            self.fc_j = nn.ZeroPad1d(max_dim - j_feat_dim)
-            pass
+            self.fc_j = nn.ZeroPad1d((max_dim - j_feat_dim, 0))
         elif j_feat_dim == max_dim:
             # if j is the largest tensor, i is the one to pad
-            self.fc_i = nn.ZeroPad1d(max_dim - i_feat_dim)
-            pass
+            self.fc_i = nn.ZeroPad1d((max_dim - i_feat_dim, 0))
         self.fc_shared = multi_layer([max_dim, intermediate_dim, embedding_dim]).to(self.device)
 
 

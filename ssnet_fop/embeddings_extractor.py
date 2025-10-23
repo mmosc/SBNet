@@ -14,7 +14,7 @@ import pandas as pd
 from binary_classification_model import SingleBranchWithDownproject, SingleBranchWithPadding
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 def read_retrieval_data(i, feature_name):
     print(f'Reading feature {i}: {feature_name}')
