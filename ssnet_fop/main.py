@@ -133,7 +133,7 @@ def main(i_train_data, j_train_data, train_label, i_test_data, j_test_data, test
     if FLAGS.merging_technique == 'padding' or i_train_data.shape[1] == j_train_data.shape[1]:
         model = SingleBranchWithPadding(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
         print('padding')
-    elif FLAGS.merging_technique == 'downprojection':
+    elif FLAGS.merging_technique == 'downproject':
         model = SingleBranchWithDownproject(FLAGS, i_train_data.shape[1], j_train_data.shape[1], DEVICE)
     else:
         print(f'Merging technique {FLAGS.merging_technique} not recognized!')
